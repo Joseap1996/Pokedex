@@ -2,42 +2,78 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/Joseap1996/pokedex/internal/pokecache"
 )
+
+type Client struct {
+	httpClient http.Client
+	cache      pokecache.Cache
+}
 
 type Location struct {
 	Name string `json:"name"`
 	Url  string `json:"url"`
 }
+
 type Data struct {
 	Next     string     `json:"next"`
 	Previous string     `json:"previous"`
 	Results  []Location `json:"results"`
 }
 
-func GetLocationsAreas(url string) (Data, error) {
+func NewClient(timeout, cacheInterval time.Duration) Client {
+	return Client{
+		httpClient: http.Client{
+			Timeout: timeout,
+		},
+		cache: pokecache.NewCache(cacheInterval),
+	}
+}
+
+func (c *Client) GetLocationsAreas(url string) (Data, error) {
 	if url == "" {
 		url = "https://pokeapi.co/api/v2/location-area/"
 	}
+	dat, ok := c.cache.Get(url)
+	if ok {
+		locationData := Data{}
+		err := json.Unmarshal(dat, &locationData)
+		if err != nil {
+			return Data{}, err
+		}
 
-	res, err := http.Get(url)
-	if err != nil {
-		return Data{}, fmt.Errorf("error creating request: %w", err)
+		return locationData, nil
+
 	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		return Data{}, fmt.Errorf("Response failed with status code: %d and\nbody: %s", res.StatusCode, body)
-	}
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return Data{}, err
 	}
-	data := Data{}
-	if err := json.Unmarshal(body, &data); err != nil {
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
 		return Data{}, err
 	}
-	return data, nil
+	defer res.Body.Close()
+
+	dat, err = io.ReadAll(res.Body)
+	if err != nil {
+		return Data{}, err
+	}
+
+	c.cache.Add(url, dat)
+
+	locationData := Data{}
+	err = json.Unmarshal(dat, &locationData)
+	if err != nil {
+		return Data{}, err
+	}
+
+	return locationData, nil
 
 }
