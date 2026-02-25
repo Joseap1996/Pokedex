@@ -33,6 +33,11 @@ func main() {
 			description: "Displays the previous 20 locations",
 			callback:    commandMapb,
 		},
+		"explore": {
+			name:        "explore",
+			description: "Displays list of pokemon in a area",
+			callback:    commandExplore,
+		},
 	}
 
 	startRepl(cfg)

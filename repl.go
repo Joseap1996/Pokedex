@@ -12,22 +12,23 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
 }
 type config struct {
 	pokeapiClient pokeapi.Client
 	Next          string
 	Previous      string
+	LocationName  string
 }
 
 var commands map[string]cliCommand
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	for name, cmd := range commands {
@@ -35,7 +36,7 @@ func commandHelp(cfg *config) error {
 	}
 	return nil
 }
-func commandMap(cfg *config) error {
+func commandMap(cfg *config, args ...string) error {
 	data, err := cfg.pokeapiClient.GetLocationsAreas(cfg.Next)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func commandMap(cfg *config) error {
 	}
 	return nil
 }
-func commandMapb(cfg *config) error {
+func commandMapb(cfg *config, args ...string) error {
 	if cfg.Previous == "" {
 		fmt.Println("you're on the first page")
 		return nil
@@ -66,6 +67,25 @@ func commandMapb(cfg *config) error {
 	return nil
 }
 
+func commandExplore(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("no location name")
+	}
+	locationName := args[0]
+	data, err := cfg.pokeapiClient.GetLocationAreaPokemon(locationName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %v...\n", locationName)
+	fmt.Println("Found Pokemon:")
+
+	for _, pokemon := range data.Pokemon_Encounters {
+		fmt.Printf(" - %v\n", pokemon.Pokemon.Name)
+	}
+	return nil
+}
+
 func cleanInput(text string) []string {
 	input := strings.ToLower(text)
 	words := strings.Fields(input)
@@ -79,13 +99,20 @@ func startRepl(cfg *config) {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
 		userInput := scanner.Text()
-		cleanedInput := cleanInput(userInput)
-		userCommand := cleanedInput[0]
+
+		words := cleanInput(userInput)
+		if len(words) == 0 {
+			continue
+		}
+
+		userCommand := words[0]
+		args := words[1:]
 		cmd, exists := commands[userCommand] // this checks that the command the user typed exist in the commands map
 		if exists {
-			cmd.callback(cfg)
-		} else {
-			fmt.Println("Unknown command")
+			err := cmd.callback(cfg, args...)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 }
