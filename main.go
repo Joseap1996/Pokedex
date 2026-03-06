@@ -10,6 +10,7 @@ func main() {
 	pokeClient := pokeapi.NewClient(5*time.Second, 5*time.Minute)
 	cfg := &config{
 		pokeapiClient: pokeClient,
+		caughtPokemon: make(map[string]pokeapi.Pokemon),
 	}
 
 	commands = map[string]cliCommand{
@@ -37,6 +38,11 @@ func main() {
 			name:        "explore",
 			description: "Displays list of pokemon in a area",
 			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "catches a pokemon and adds them to the pokedex",
+			callback:    commandCatch,
 		},
 	}
 

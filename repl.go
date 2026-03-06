@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"math/rand"
+
 	"github.com/Joseap1996/pokedex/internal/pokeapi"
 )
 
@@ -19,6 +21,8 @@ type config struct {
 	Next          string
 	Previous      string
 	LocationName  string
+	PokemonName   string
+	caughtPokemon map[string]pokeapi.Pokemon
 }
 
 var commands map[string]cliCommand
@@ -82,6 +86,32 @@ func commandExplore(cfg *config, args ...string) error {
 
 	for _, pokemon := range data.Pokemon_Encounters {
 		fmt.Printf(" - %v\n", pokemon.Pokemon.Name)
+	}
+	return nil
+}
+
+func commandCatch(cfg *config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("no pokemon to catch")
+	}
+	pokemonName := args[0]
+	data, err := cfg.pokeapiClient.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+	catch := true
+	roll := rand.Intn(data.Base_Experience)
+	fmt.Printf("Throwing a Pokeball at %v...\n", data.Name)
+
+	if roll > 40 {
+		catch = false
+	}
+
+	if catch {
+		fmt.Printf("%v was caught!\n", data.Name)
+		cfg.caughtPokemon[data.Name] = data
+	} else {
+		fmt.Printf("%v escaped!\n", data.Name)
 	}
 	return nil
 }

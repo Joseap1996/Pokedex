@@ -13,7 +13,10 @@ type Client struct {
 	httpClient http.Client
 	cache      pokecache.Cache
 }
-
+type Pokemon struct {
+	Name            string `json:"name"`
+	Base_Experience int    `json:"base_experience"`
+}
 type Location struct {
 	Name               string `json:"name"`
 	Url                string `json:"url"`
@@ -122,4 +125,42 @@ func (c *Client) GetLocationAreaPokemon(locationName string) (Location, error) {
 
 	return locationData, nil
 
+}
+func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
+	url := "https://pokeapi.co/api/v2/pokemon/" + pokemonName
+	dat, ok := c.cache.Get(url)
+	if ok {
+		pokemonData := Pokemon{}
+		err := json.Unmarshal(dat, &pokemonData)
+		if err != nil {
+			return Pokemon{}, err
+		}
+		return pokemonData, nil
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	defer res.Body.Close()
+
+	dat, err = io.ReadAll(res.Body)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	c.cache.Add(url, dat)
+
+	pokemonData := Pokemon{}
+	err = json.Unmarshal(dat, &pokemonData)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	return pokemonData, nil
 }
