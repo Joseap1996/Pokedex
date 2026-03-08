@@ -100,7 +100,7 @@ func commandCatch(cfg *config, args ...string) error {
 		return err
 	}
 	catch := true
-	roll := rand.Intn(data.Base_Experience)
+	roll := rand.Intn(data.BaseExperience)
 	fmt.Printf("Throwing a Pokeball at %v...\n", data.Name)
 
 	if roll > 40 {
@@ -112,6 +112,29 @@ func commandCatch(cfg *config, args ...string) error {
 		cfg.caughtPokemon[data.Name] = data
 	} else {
 		fmt.Printf("%v escaped!\n", data.Name)
+	}
+	return nil
+}
+
+func commandInspect(cfg *config, args ...string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("no pokemon to inspect")
+	}
+	pokemonName := args[0]
+	if pokemon, ok := cfg.caughtPokemon[pokemonName]; !ok {
+		return fmt.Errorf("you have not caught that pokemon")
+	} else {
+		fmt.Printf("Name: %v\n", pokemon.Name)
+		fmt.Printf("Height: %v\n", pokemon.Height)
+		fmt.Printf("Weight: %v\n", pokemon.Weight)
+		fmt.Println("Stats:")
+		for _, stat := range pokemon.Stats {
+			fmt.Printf("  -%v: %v\n", stat.Stat.Name, stat.BaseStat)
+		}
+		fmt.Println("Types:")
+		for _, typeInfo := range pokemon.Types {
+			fmt.Printf("  - %v\n", typeInfo.Type.Name)
+		}
 	}
 	return nil
 }

@@ -13,10 +13,7 @@ type Client struct {
 	httpClient http.Client
 	cache      pokecache.Cache
 }
-type Pokemon struct {
-	Name            string `json:"name"`
-	Base_Experience int    `json:"base_experience"`
-}
+
 type Location struct {
 	Name               string `json:"name"`
 	Url                string `json:"url"`
