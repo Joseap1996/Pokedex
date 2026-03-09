@@ -49,6 +49,11 @@ func main() {
 			description: "shows caught pokemon information",
 			callback:    commandInspect,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "lists caught pokemon",
+			callback:    commandPokedex,
+		},
 	}
 
 	startRepl(cfg)

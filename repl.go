@@ -30,11 +30,14 @@ var commands map[string]cliCommand
 func commandExit(cfg *config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
+	savePokedex(cfg.caughtPokemon)
 	return nil
+
 }
 func commandHelp(cfg *config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
+	fmt.Println("")
 	for name, cmd := range commands {
 		fmt.Printf("%v: %v\n", name, cmd.description)
 	}
@@ -109,7 +112,9 @@ func commandCatch(cfg *config, args ...string) error {
 
 	if catch {
 		fmt.Printf("%v was caught!\n", data.Name)
+		fmt.Println("You may now inspect it with the inspect command")
 		cfg.caughtPokemon[data.Name] = data
+		savePokedex(cfg.caughtPokemon)
 	} else {
 		fmt.Printf("%v escaped!\n", data.Name)
 	}
@@ -139,6 +144,14 @@ func commandInspect(cfg *config, args ...string) error {
 	return nil
 }
 
+func commandPokedex(cfg *config, args ...string) error {
+	fmt.Println("Your Pokedex:")
+	for _, pokemon := range cfg.caughtPokemon {
+		fmt.Printf(" -%v \n", pokemon.Name)
+	}
+	return nil
+}
+
 func cleanInput(text string) []string {
 	input := strings.ToLower(text)
 	words := strings.Fields(input)
@@ -147,6 +160,11 @@ func cleanInput(text string) []string {
 }
 
 func startRepl(cfg *config) {
+	pokedex, err := loadPokedex()
+	if err != nil {
+		fmt.Println("No saved data found, starting a new save file...")
+	}
+	cfg.caughtPokemon = pokedex
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -168,4 +186,5 @@ func startRepl(cfg *config) {
 			}
 		}
 	}
+
 }
