@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/Joseap1996/pokedex/internal/pokeapi"
@@ -30,4 +31,16 @@ func loadPokedex() (map[string]pokeapi.Pokemon, error) {
 	err = json.Unmarshal(data, &pokedex)
 	return pokedex, nil
 
+}
+
+func deleteSave() error {
+	err := os.Remove("pokedex.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("no save file found")
+		}
+		return err
+	}
+	fmt.Println("Save file deleted")
+	return nil
 }

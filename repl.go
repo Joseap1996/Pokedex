@@ -151,6 +151,24 @@ func commandPokedex(cfg *config, args ...string) error {
 	}
 	return nil
 }
+func commandDelete(cfg *config, args ...string) error {
+	fmt.Print("Are you sure you want to delete your save file? (y/n): ")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	response := strings.ToLower(strings.TrimSpace(scanner.Text()))
+	if response != "y" {
+		fmt.Println("Save deletion cancelled.")
+		return nil
+	}
+
+	err := deleteSave()
+	if err != nil {
+		return err
+	}
+	cfg.caughtPokemon = map[string]pokeapi.Pokemon{}
+	return nil
+}
 
 func cleanInput(text string) []string {
 	input := strings.ToLower(text)

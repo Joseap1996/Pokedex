@@ -54,6 +54,11 @@ func main() {
 			description: "lists caught pokemon",
 			callback:    commandPokedex,
 		},
+		"delete": {
+			name:        "delete",
+			description: "deletes current save file",
+			callback:    commandDelete,
+		},
 	}
 
 	startRepl(cfg)
