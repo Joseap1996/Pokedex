@@ -59,6 +59,11 @@ func main() {
 			description: "deletes current save file",
 			callback:    commandDelete,
 		},
+		"random_battle": {
+			name:        "random_battle",
+			description: "encounter a random pokemon in chosen location",
+			callback:    commandRandomBattle,
+		},
 	}
 
 	startRepl(cfg)

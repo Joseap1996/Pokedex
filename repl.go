@@ -30,7 +30,7 @@ var commands map[string]cliCommand
 func commandExit(cfg *config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
-	savePokedex(cfg.caughtPokemon)
+	savePokedex(cfg.caughtPokemon) // saves just in case on exit
 	return nil
 
 }
@@ -103,10 +103,10 @@ func commandCatch(cfg *config, args ...string) error {
 		return err
 	}
 	catch := true
-	roll := rand.Intn(data.BaseExperience)
+	roll := rand.Intn(data.BaseExperience) // roll based on pokemons based exp
 	fmt.Printf("Throwing a Pokeball at %v...\n", data.Name)
 
-	if roll > 40 {
+	if roll > 40 { // the higher the base exp the harder to catch
 		catch = false
 	}
 
@@ -114,7 +114,7 @@ func commandCatch(cfg *config, args ...string) error {
 		fmt.Printf("%v was caught!\n", data.Name)
 		fmt.Println("You may now inspect it with the inspect command")
 		cfg.caughtPokemon[data.Name] = data
-		savePokedex(cfg.caughtPokemon)
+		savePokedex(cfg.caughtPokemon) // saves current state of the pokedex after succesful catch
 	} else {
 		fmt.Printf("%v escaped!\n", data.Name)
 	}
@@ -178,7 +178,7 @@ func cleanInput(text string) []string {
 }
 
 func startRepl(cfg *config) {
-	pokedex, err := loadPokedex()
+	pokedex, err := loadPokedex() // loads save data
 	if err != nil {
 		fmt.Println("No saved data found, starting a new save file...")
 	}
